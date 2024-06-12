@@ -130,6 +130,25 @@ app.put("/usuarios/:id", (req, res) => {
     }
 });
 
+app.post("/questionario", (req, resp) => {
+    try {
+        console.log("Alguém enviou um update com os dados:", req.body);
+        const id = req.params.id;
+        const { q1, q2, q3, q4, q5, q6, q7, q8, q9, q10 } = req.body;
+        client.query(
+            "INSERT INTO questionario (q1, q2, q3, q4, q5, q6, q7, q8, q9, q10) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *",
+            [q1, q2, q3, q4, q5, q6, q7, q8, q9, q10],
+            function (err, result) {
+                if (err) {
+                    return console.error("Erro ao executar a qry de INSERT", err);
+                } 
+            }
+        );
+    } catch (erro) {
+        console.error(erro);
+    }
+});
+
 app.listen(config.port, () =>
     console.log("Servidor funcionando na porta " + config.port)
 );

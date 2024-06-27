@@ -149,59 +149,6 @@ app.post("/questionario", (req, resp) => {
     }
 });
 
-// Rotas para usuariosdm
-app.get("/usuariosdm", async (req, res) => {
-    try {
-        const result = await client.query("SELECT * FROM usuariosdm");
-        res.send(result.rows);
-    } catch (err) {
-        console.error("Erro ao executar a qry de SELECT", err);
-        res.status(500).send("Erro ao executar a qry de SELECT");
-    }
-});
-
-app.get("/usuariosdm/:id", async (req, res) => {
-    try {
-        const result = await client.query(
-            "SELECT * FROM usuariosdm WHERE id = $1", [req.params.id]
-        );
-        res.send(result.rows);
-    } catch (err) {
-        console.error("Erro ao executar a qry de SELECT id", err);
-        res.status(500).send("Erro ao executar a qry de SELECT id");
-    }
-});
-
-app.post("/usuariosdm", async (req, res) => {
-    try {
-        const { nome, email, senha, telefone, rua, numero, cidade, estado, cep, data_nascimento } = req.body;
-        const result = await client.query(
-            "INSERT INTO usuariosdm (nome, email, senha, telefone, rua, numero, cidade, estado, cep, data_nascimento) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *", 
-            [nome, email, senha, telefone, rua, numero, cidade, estado, cep, data_nascimento]
-        );
-        res.status(201).json(result.rows[0]);
-    } catch (err) {
-        console.error("Erro ao executar a qry de INSERT", err);
-        res.status(500).send("Erro ao executar a qry de INSERT");
-    }
-});
-
-app.delete("/usuariosdm/:id", async (req, res) => {
-    try {
-        const result = await client.query(
-            "DELETE FROM usuariosdm WHERE id = $1", [req.params.id]
-        );
-        if (result.rowCount == 0) {
-            res.status(404).json({ info: "Registro não encontrado." });
-        } else {
-            res.status(200).json({ info: `Registro excluído. Código: ${req.params.id}` });
-        }
-    } catch (err) {
-        console.error("Erro ao executar a qry de DELETE", err);
-        res.status(500).send("Erro ao executar a qry de DELETE");
-    }
-});
-
 // Rotas para pedidosdm
 app.get("/pedidosdm", async (req, res) => {
     try {
@@ -252,6 +199,35 @@ app.delete("/pedidosdm/:id", async (req, res) => {
     } catch (err) {
         console.error("Erro ao executar a qry de DELETE", err);
         res.status(500).send("Erro ao executar a qry de DELETE");
+    }
+});
+
+// Rota para verificar login de usuário
+app.post("/usuarios/login", (req, res) => {
+    try {
+        const { username, senha } = req.body;
+        
+        // Consulta SQL para verificar se o usuário e senha correspondem
+        const query = {
+            text: 'SELECT * FROM Usuarios WHERE username = $1 AND senha = $2',
+            values: [username, senha],
+        };
+
+        client.query(query, (err, result) => {
+            if (err) {
+                console.error("Erro ao executar a consulta de login", err);
+                res.status(500).send("Erro ao verificar login");
+            } else {
+                if (result.rows.length > 0) {
+                    res.status(200).json({ message: "Login bem sucedido", user: result.rows[0] });
+                } else {
+                    res.status(401).json({ message: "Credenciais inválidas" });
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Erro ao processar a requisição de login", error);
+        res.status(500).send("Erro ao processar a requisição de login");
     }
 });
 

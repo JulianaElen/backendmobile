@@ -174,33 +174,30 @@ app.get("/pedidosdm/:id", async (req, res) => {
 
 app.post("/pedidosdm", async (req, res) => {
     try {
-        const { usuario_id, data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total } = req.body;
+        const { data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total } = req.body;
+
+        // Validação de entrada
+        if (!data_pedido || !hora_pedido || !recheio || !cobertura || !decoracao || !formato || !tamanho || !total) {
+            return res.status(400).send("Todos os campos são obrigatórios.");
+        }
+
         const result = await client.query(
-            "INSERT INTO pedidosdm (usuario_id, data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *", 
-            [usuario_id, data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total]
+            "INSERT INTO pedidosdm (data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", 
+            [data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total]
         );
+
         res.status(201).json(result.rows[0]);
     } catch (err) {
-        console.error("Erro ao executar a qry de INSERT", err);
-        res.status(500).send("Erro ao executar a qry de INSERT");
+        console.error("Erro ao executar a query de INSERT", err);
+        if (err.code === '23505') { // Código de erro para violação de chave única
+            res.status(409).send("Pedido já existente.");
+        } else {
+            res.status(500).send("Erro ao executar a query de INSERT");
+        }
     }
 });
 
-app.delete("/pedidosdm/:id", async (req, res) => {
-    try {
-        const result = await client.query(
-            "DELETE FROM pedidosdm WHERE id = $1", [req.params.id]
-        );
-        if (result.rowCount == 0) {
-            res.status(404).json({ info: "Registro não encontrado." });
-        } else {
-            res.status(200).json({ info: `Registro excluído. Código: ${req.params.id}` });
-        }
-    } catch (err) {
-        console.error("Erro ao executar a qry de DELETE", err);
-        res.status(500).send("Erro ao executar a qry de DELETE");
-    }
-});
+
 
 // Rota para verificar login de usuário
 app.post("/usuarios/login", (req, res) => {

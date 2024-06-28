@@ -159,23 +159,6 @@ app.get("/pedidosdm", async (req, res) => {
         res.status(500).send("Erro ao executar a qry de SELECT");
     }
 });
-app.delete("/pedidosdm/:id", async (req, res) => {
-    try {
-        const pedidoId = req.params.id;
-        const result = await client.query(
-            "DELETE FROM pedidosdm WHERE id = $1", [pedidoId]
-        );
-
-        if (result.rowCount === 0) {
-            res.status(404).json({ info: "Pedido não encontrado." });
-        } else {
-            res.status(200).json({ info: `Pedido excluído com sucesso. ID: ${pedidoId}` });
-        }
-    } catch (err) {
-        console.error("Erro ao executar a query de DELETE", err);
-        res.status(500).send("Erro ao excluir o pedido.");
-    }
-});
 
 app.get("/pedidosdm/:id", async (req, res) => {
     try {
@@ -200,42 +183,11 @@ app.post("/pedidosdm", async (req, res) => {
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error("Erro ao executar a query de INSERT", err);
-        if (err.code === '23505') { // Código de erro para violação de chave única
+        if (err.code === '23505') { 
             res.status(409).send("Pedido já existente.");
         } else {
             res.status(500).send("Erro ao executar a query de INSERT");
         }
-    }
-});
-
-
-
-// Rota para verificar login de usuário
-app.post("/usuarios/login", (req, res) => {
-    try {
-        const { username, senha } = req.body;
-        
-        // Consulta SQL para verificar se o usuário e senha correspondem
-        const query = {
-            text: 'SELECT * FROM Usuarios WHERE username = $1 AND senha = $2',
-            values: [username, senha],
-        };
-
-        client.query(query, (err, result) => {
-            if (err) {
-                console.error("Erro ao executar a consulta de login", err);
-                res.status(500).send("Erro ao verificar login");
-            } else {
-                if (result.rows.length > 0) {
-                    res.status(200).json({ message: "Login bem sucedido", user: result.rows[0] });
-                } else {
-                    res.status(401).json({ message: "Credenciais inválidas" });
-                }
-            }
-        });
-    } catch (error) {
-        console.error("Erro ao processar a requisição de login", error);
-        res.status(500).send("Erro ao processar a requisição de login");
     }
 });
 

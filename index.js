@@ -193,16 +193,10 @@ app.post("/pedidosdm", async (req, res) => {
     try {
         const { data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total } = req.body;
 
-        // Validação de entrada
-        if (!data_pedido || !hora_pedido || !recheio || !cobertura || !decoracao || !formato || !tamanho || !total) {
-            return res.status(400).send("Todos os campos são obrigatórios.");
-        }
-
         const result = await client.query(
             "INSERT INTO pedidosdm (data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *", 
             [data_pedido, hora_pedido, recheio, cobertura, decoracao, formato, tamanho, total]
         );
-
         res.status(201).json(result.rows[0]);
     } catch (err) {
         console.error("Erro ao executar a query de INSERT", err);

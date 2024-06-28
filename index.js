@@ -159,6 +159,23 @@ app.get("/pedidosdm", async (req, res) => {
         res.status(500).send("Erro ao executar a qry de SELECT");
     }
 });
+app.delete("/pedidosdm/:id", async (req, res) => {
+    try {
+        const pedidoId = req.params.id;
+        const result = await client.query(
+            "DELETE FROM pedidosdm WHERE id = $1", [pedidoId]
+        );
+
+        if (result.rowCount === 0) {
+            res.status(404).json({ info: "Pedido não encontrado." });
+        } else {
+            res.status(200).json({ info: `Pedido excluído com sucesso. ID: ${pedidoId}` });
+        }
+    } catch (err) {
+        console.error("Erro ao executar a query de DELETE", err);
+        res.status(500).send("Erro ao excluir o pedido.");
+    }
+});
 
 app.get("/pedidosdm/:id", async (req, res) => {
     try {
